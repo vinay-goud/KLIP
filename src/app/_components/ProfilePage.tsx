@@ -18,8 +18,20 @@ export default function ProfilePage({ session }: { session: any }) {
     const myVideos = videos.filter((v: any) => v.userId === session?.user?.id);
 
     if (!session) {
-        router.push("/api/auth/signin");
-        return null;
+        return (
+            <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">Profile</h1>
+                    <p className="text-gray-400 mb-6">Please log in to view your profile</p>
+                    <button
+                        onClick={() => router.push("/auth/signin")}
+                        className="px-6 py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-medium transition"
+                    >
+                        Log In
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     return (

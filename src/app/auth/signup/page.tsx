@@ -5,26 +5,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "~/trpc/react";
 
-export default function SignIn() {
+export default function SignUp() {
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [isEmailLoading, setIsEmailLoading] = useState(false);
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    const handleGoogleLogin = async () => {
-        setIsGoogleLoading(true);
-        await signIn("google", { callbackUrl: "/" });
-    };
-
-    const handleCredentialsLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsEmailLoading(true);
-        setError(null);
-
-        try {
+    const signupMutation = api.auth.signup.useMutation({
+        onSuccess: async () => {
+            // Auto login after signup
             const result = await signIn("credentials", {
                 redirect: false,
                 email,
@@ -32,20 +27,50 @@ export default function SignIn() {
             });
 
             if (result?.error) {
-                setError("Invalid email or password");
+                setError("Account created but failed to log in automatically.");
                 setIsEmailLoading(false);
             } else {
                 router.push("/");
             }
-        } catch (err) {
-            setError("An error occurred during sign in");
+        },
+        onError: (err) => {
+            setError(err.message);
             setIsEmailLoading(false);
+        },
+    });
+
+    const handleGoogleLogin = async () => {
+        setIsGoogleLoading(true);
+        await signIn("google", { callbackUrl: "/" });
+    };
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsEmailLoading(true);
+        setError(null);
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            setIsEmailLoading(false);
+            return;
         }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters");
+            setIsEmailLoading(false);
+            return;
+        }
+
+        signupMutation.mutate({
+            name,
+            email,
+            password,
+        });
     };
 
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-gray-900/50 backdrop-blur-lg p-8 rounded-2xl border border-gray-800 shadow-xl">
+            <div className="w-full max-w-md bg-gray-900/50 backdrop-blur-lg p-8 rounded-2xl border border-gray-800 shadow-xl my-8">
                 <div className="flex flex-col items-center mb-8">
                     <div className="flex items-center gap-3 mb-2">
                         <Image
@@ -60,12 +85,27 @@ export default function SignIn() {
                         </span>
                     </div>
                     <p className="text-gray-400 text-center">
-                        Welcome back! Log in to continue.
+                        Create an account to get started
                     </p>
                 </div>
 
                 <div className="space-y-4">
-                    <form onSubmit={handleCredentialsLogin} className="space-y-4">
+                    <form onSubmit={handleSignup} className="space-y-4">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1">
+                                Username
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-pink-500 text-white transition"
+                                placeholder="johndoe"
+                                required
+                                minLength={2}
+                            />
+                        </div>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
                                 Email Address
@@ -92,6 +132,22 @@ export default function SignIn() {
                                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-pink-500 text-white transition"
                                 placeholder="••••••••"
                                 required
+                                minLength={6}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-400 mb-1">
+                                Confirm Password
+                            </label>
+                            <input
+                                id="confirmPassword"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-pink-500 text-white transition"
+                                placeholder="••••••••"
+                                required
+                                minLength={6}
                             />
                         </div>
 
@@ -104,7 +160,7 @@ export default function SignIn() {
                             disabled={isEmailLoading || isGoogleLoading}
                             className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-pink-700 hover:to-purple-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            {isEmailLoading ? "Logging in..." : "Log In"}
+                            {isEmailLoading ? "Creating Account..." : "Sign Up"}
                         </button>
                     </form>
 
@@ -150,9 +206,9 @@ export default function SignIn() {
                     </button>
 
                     <p className="mt-8 text-center text-sm text-gray-500">
-                        Don't have an account?{" "}
-                        <Link href="/auth/signup" className="text-pink-500 hover:text-pink-400 font-medium">
-                            Sign Up
+                        Already have an account?{" "}
+                        <Link href="/auth/signin" className="text-pink-500 hover:text-pink-400 font-medium">
+                            Log In
                         </Link>
                     </p>
                 </div>

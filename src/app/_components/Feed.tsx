@@ -1,8 +1,9 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Feed({ session }: { session: any }) {
     const { data, fetchNextPage, hasNextPage } = api.video.getInfinite.useInfiniteQuery(
@@ -15,7 +16,7 @@ export default function Feed({ session }: { session: any }) {
     return (
         <div className="w-full max-w-2xl mx-auto h-screen overflow-y-scroll snap-y snap-mandatory no-scrollbar pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
             {videos.map((video: any) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard key={video.id} video={video} session={session} />
             ))}
 
             {videos.length === 0 && (
@@ -45,8 +46,9 @@ export default function Feed({ session }: { session: any }) {
     );
 }
 
-function VideoCard({ video }: { video: any }) {
+function VideoCard({ video, session }: { video: any; session: any }) {
     const utils = api.useUtils();
+    const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -58,6 +60,10 @@ function VideoCard({ video }: { video: any }) {
 
     const handleLike = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (!session) {
+            router.push("/auth/signin");
+            return;
+        }
         toggleLike.mutate({ videoId: video.id });
     };
 
