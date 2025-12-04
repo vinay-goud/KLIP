@@ -4,6 +4,7 @@ import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { LogOut, Video } from "lucide-react";
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 
 export default function ProfilePage({ session }: { session: any }) {
     const router = useRouter();
@@ -156,7 +157,7 @@ export default function ProfilePage({ session }: { session: any }) {
                                 Cancel
                             </button>
                             <button
-                                onClick={() => router.push("/api/auth/signout")}
+                                onClick={() => signOut({ callbackUrl: "/" })}
                                 className="flex-1 px-6 py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-medium transition text-white"
                             >
                                 Sign Out

@@ -25,13 +25,13 @@ export default function Feed({ session }: { session: any }) {
     }
 
     return (
-        <div className="w-full max-w-2xl mx-auto h-screen overflow-y-scroll snap-y snap-mandatory no-scrollbar pb-20 md:pb-0">
+        <div className="w-full max-w-2xl mx-auto h-[100dvh] overflow-y-scroll snap-y snap-mandatory no-scrollbar pb-20 md:pb-0">
             {videos.map((video: any) => (
                 <VideoCard key={video.id} video={video} session={session} />
             ))}
 
             {videos.length === 0 && (
-                <div className="h-screen flex items-center justify-center snap-start">
+                <div className="h-[100dvh] flex items-center justify-center snap-start">
                     <div className="text-center">
                         <p className="text-gray-400 mb-4">No videos yet. Be the first!</p>
                         {session && (
@@ -62,6 +62,8 @@ function VideoCard({ video, session }: { video: any; session: any }) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+    const lastTapRef = useRef<number>(0);
 
     const toggleLike = api.video.toggleLike.useMutation({
         onSuccess: () => {
@@ -69,23 +71,40 @@ function VideoCard({ video, session }: { video: any; session: any }) {
         }
     });
 
-    const handleLike = (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleLike = () => {
         if (!session) {
             router.push("/auth/signin");
             return;
         }
+
+        // Show heart animation immediately
+        setShowHeartAnimation(true);
+        setTimeout(() => setShowHeartAnimation(false), 800);
+
+        // Trigger mutation
         toggleLike.mutate({ videoId: video.id });
     };
 
-    const togglePlay = () => {
-        if (videoRef.current) {
-            if (isPlaying) {
-                videoRef.current.pause();
-            } else {
-                videoRef.current.play();
+    const handleVideoClick = (e: React.MouseEvent) => {
+        const currentTime = Date.now();
+        const timeSinceLastTap = currentTime - lastTapRef.current;
+
+        // Double tap detection (within 300ms)
+        if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+            // Double tap - like the video
+            handleLike();
+            lastTapRef.current = 0; // Reset
+        } else {
+            // Single tap - toggle play/pause
+            if (videoRef.current) {
+                if (isPlaying) {
+                    videoRef.current.pause();
+                } else {
+                    videoRef.current.play();
+                }
+                setIsPlaying(!isPlaying);
             }
-            setIsPlaying(!isPlaying);
+            lastTapRef.current = currentTime;
         }
     };
 
@@ -121,7 +140,7 @@ function VideoCard({ video, session }: { video: any; session: any }) {
     }, []);
 
     return (
-        <div className="h-screen md:h-screen w-full snap-start relative bg-black flex items-center justify-center">
+        <div className="h-[100dvh] w-full snap-start relative bg-black flex items-center justify-center">
             <video
                 ref={videoRef}
                 src={video.url}
@@ -129,8 +148,30 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                 loop
                 playsInline
                 preload="metadata"
-                onClick={togglePlay}
+                onClick={handleVideoClick}
             />
+
+            {/* Heart Animation */}
+            {showHeartAnimation && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="relative">
+                        <svg
+                            className="w-24 h-24 text-red-500 animate-[ping_0.8s_ease-out]"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <svg
+                            className="w-24 h-24 text-pink-400 absolute inset-0 animate-[ping_0.8s_ease-out_0.1s]"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </div>
+                </div>
+            )}
 
             {/* Play/Pause Overlay Icon */}
             {!isPlaying && (
@@ -158,13 +199,19 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                     </div>
 
                     <div className="flex flex-col items-center gap-6 absolute right-2 bottom-24 md:bottom-8">
-                        <button onClick={handleLike} className="flex flex-col items-center group">
-                            <div className={`p-3 rounded-full bg-gray-800/60 backdrop-blur-sm transition-transform group-active:scale-90 ${video.isLiked ? 'text-red-500' : 'text-white'}`}>
-                                <svg className={`w-8 h-8 ${video.isLiked ? 'fill-current' : 'stroke-current fill-none'}`} viewBox="0 0 24 24" strokeWidth="2">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleLike();
+                            }}
+                            className="flex flex-col items-center group"
+                        >
+                            <div className={`transition-transform group-active:scale-90 ${video.isLiked ? 'text-red-500' : 'text-white'}`}>
+                                <svg className={`w-10 h-10 drop-shadow-lg ${video.isLiked ? 'fill-current' : 'stroke-current fill-none'}`} viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                             </div>
-                            <span className="text-xs font-bold mt-1 text-white text-shadow">{video._count.likes}</span>
+                            <span className="text-xs font-bold mt-1 text-white drop-shadow-lg">{video._count.likes}</span>
                         </button>
                     </div>
                 </div>
