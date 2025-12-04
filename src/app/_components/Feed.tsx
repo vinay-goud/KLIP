@@ -3,7 +3,7 @@
 import { api } from "~/trpc/react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAuthModal } from "./AuthModalContext";
 
 export default function Feed({ session }: { session: any }) {
     const { data, fetchNextPage, hasNextPage, isLoading } = api.video.getInfinite.useInfiniteQuery(
@@ -59,7 +59,7 @@ export default function Feed({ session }: { session: any }) {
 
 function VideoCard({ video, session }: { video: any; session: any }) {
     const utils = api.useUtils();
-    const router = useRouter();
+    const { openLogIn } = useAuthModal();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showHeartAnimation, setShowHeartAnimation] = useState(false);
@@ -73,7 +73,7 @@ function VideoCard({ video, session }: { video: any; session: any }) {
 
     const handleLike = () => {
         if (!session) {
-            router.push("/auth/signin");
+            openLogIn();
             return;
         }
 
@@ -175,9 +175,9 @@ function VideoCard({ video, session }: { video: any; session: any }) {
 
             {/* Play/Pause Overlay Icon */}
             {!isPlaying && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="bg-black/40 p-4 rounded-full">
-                        <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <div className="bg-black/50 p-4 rounded-full">
+                        <svg className="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>

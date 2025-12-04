@@ -4,9 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Home, Upload, User } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { useAuthModal } from "./AuthModalContext";
 
 export default function Sidebar({ session }: { session: any }) {
     const pathname = usePathname();
+    const { openLogIn } = useAuthModal();
 
     const navItems = [
         { href: "/", label: "Home", icon: Home },
@@ -66,21 +69,21 @@ export default function Sidebar({ session }: { session: any }) {
                                 <p className="text-sm font-medium text-white truncate">
                                     {session.user?.name || "User"}
                                 </p>
-                                <Link
-                                    href="/api/auth/signout"
+                                <button
+                                    onClick={() => signOut({ callbackUrl: "/" })}
                                     className="text-xs text-gray-400 hover:text-white transition"
                                 >
-                                    Sign out
-                                </Link>
+                                    Log Out
+                                </button>
                             </div>
                         </div>
                     ) : (
-                        <Link
-                            href="/api/auth/signin"
+                        <button
+                            onClick={openLogIn}
                             className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-pink-600 rounded-lg hover:bg-pink-700 transition"
                         >
-                            Sign In
-                        </Link>
+                            Log In
+                        </button>
                     )}
                 </div>
             </div>

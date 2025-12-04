@@ -1,91 +1,222 @@
 # KLIP - Short-Form Video Platform
 
-A modern short-form video platform built with the T3 Stack (Next.js, tRPC, Tailwind CSS, TypeScript) and Supabase.
+A modern, TikTok-style short-form video sharing platform built with the T3 Stack, featuring seamless video playback, social interactions, and a beautiful mobile-first UI.
 
-## Features
+## 🎯 Features
 
-- 🎥 **Video Feed**: Infinite scroll feed with snap scrolling and auto-play
-- 📤 **Video Upload**: Drag-and-drop upload with progress tracking
-- 🔐 **Authentication**: Google OAuth and Email/Password login/signup
-- ❤️ **Interactions**: Like videos and see real-time counts
-- 📱 **Responsive Design**: Mobile-first UI with bottom navigation
-- 🎨 **Modern UI**: Dark mode, glassmorphism, and smooth animations
+### 📱 Video Experience
+- **Infinite Scroll Feed** - Smooth, TikTok-style vertical video feed
+- **Auto-Play & Snap Scrolling** - Videos auto-play as you scroll
+- **Double-Tap to Like** - Intuitive gesture-based interactions
+- **Animated Reactions** - Beautiful heart animations on like
+- **Mobile-Optimized** - Perfect viewport handling with `dvh` units
+- **Centered Play/Pause** - Large, centered controls on all devices
 
-## Tech Stack
+### 🔐 Authentication
+- **Popup Modals** - Modern modal-based login/signup (no page navigation)
+- **Google OAuth** - One-click sign in with Google
+- **Email/Password** - Traditional credentials-based authentication
+- **Protected Routes** - Upload and profile pages require authentication
+- **Guest Browsing** - Public video feed accessible without login
 
-- **Framework**: [Next.js](https://nextjs.org) (App Router)
-- **Language**: [TypeScript](https://www.typescriptlang.org)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com)
-- **API**: [tRPC](https://trpc.io)
-- **Database**: [Supabase PostgreSQL](https://supabase.com)
-- **ORM**: [Prisma](https://www.prisma.io)
-- **Auth**: [NextAuth.js](https://next-auth.js.org)
-- **Storage**: [Supabase Storage](https://supabase.com/storage)
+### 🎨 User Interface
+- **Responsive Design** - Optimized for mobile, tablet, and desktop
+- **Dark Theme** - Sleek dark mode throughout
+- **Glassmorphism** - Modern UI with backdrop blur effects
+- **Gradient Accents** - Pink-to-purple brand colors
+- **Mobile Keyboard Handling** - Proper viewport adjustments on input focus
 
-## Getting Started
+### 👤 User Features
+- **Profile Management** - View your uploaded videos and stats
+- **Video Upload** - Easy video upload with title and description
+- **Like System** - Like videos with instant visual feedback
+- **Video Grid** - Beautiful grid layout for user profiles
+
+## 🛠️ Tech Stack
+
+### Core Framework
+- **[Next.js 15.5.6](https://nextjs.org/)** - React framework with App Router
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
+
+### Backend & Database
+- **[tRPC](https://trpc.io/)** - End-to-end typesafe APIs
+- **[Prisma](https://www.prisma.io/)** - Type-safe database ORM
+- **[Supabase](https://supabase.com/)** - PostgreSQL database & storage
+- **[NextAuth.js](https://next-auth.js.org/)** - Authentication
+
+### State & Data
+- **[TanStack Query](https://tanstack.com/query)** - Data fetching & caching
+- **[Zod](https://zod.dev/)** - Schema validation
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── _components/          # Reusable React components
+│   │   ├── AuthModalContext.tsx    # Global auth modal state
+│   │   ├── AuthModals.tsx          # Modal wrapper component
+│   │   ├── LogInModal.tsx          # Login modal
+│   │   ├── SignUpModal.tsx         # Signup modal
+│   │   ├── Feed.tsx                # Video feed component
+│   │   ├── ProfilePage.tsx         # Profile page component
+│   │   ├── UploadForm.tsx          # Video upload form
+│   │   ├── Sidebar.tsx             # Desktop navigation
+│   │   └── BottomNav.tsx           # Mobile navigation
+│   ├── upload/               # Upload page route
+│   ├── profile/              # Profile page route
+│   ├── layout.tsx            # Root layout with providers
+│   └── page.tsx              # Home page (video feed)
+├── server/
+│   ├── api/
+│   │   ├── routers/          # tRPC routers
+│   │   │   ├── video.ts      # Video operations
+│   │   │   └── auth.ts       # Auth operations
+│   │   └── root.ts           # Root router
+│   ├── auth/
+│   │   └── config.ts         # NextAuth configuration
+│   └── db.ts                 # Prisma client
+├── lib/
+│   └── supabase.ts           # Supabase client
+└── styles/
+    └── globals.css           # Global styles
+```
+
+## 🚀 Getting Started
 
 ### Prerequisites
+- Node.js 18+ and npm
+- Supabase account
+- Google OAuth credentials (optional)
 
-- Node.js 18+
-- Supabase Account
-- Google Cloud Console Account (for OAuth)
+### Installation
 
-### Environment Setup
-
-1. Copy the example environment file:
+1. **Clone the repository**
    ```bash
-   cp .env.example .env
+   git clone <repository-url>
+   cd KLIP
    ```
 
-2. Configure your `.env` file with the following variables:
-
+2. **Install dependencies**
    ```bash
-   # Database (Supabase)
-   DATABASE_URL="postgresql://postgres:[PASSWORD]@[HOST]:6543/postgres?pgbouncer=true"
-   DIRECT_DATABASE_URL="postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres"
+   npm install
+   ```
 
-   # Supabase API
-   NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
-   NEXT_PUBLIC_SUPABASE_ANON_KEY="[ANON-KEY]"
+3. **Set up environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   # Database
+   DATABASE_URL="postgresql://..."
+   DIRECT_DATABASE_URL="postgresql://..."
+
+   # Supabase
+   NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+   NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 
    # NextAuth
-   AUTH_SECRET="[GENERATED-SECRET]" # Generate with: npx auth secret
-   AUTH_GOOGLE_ID="[GOOGLE-CLIENT-ID]"
-   AUTH_GOOGLE_SECRET="[GOOGLE-CLIENT-SECRET]"
+   AUTH_SECRET="your-secret-key"
+   AUTH_GOOGLE_ID="your-google-client-id"
+   AUTH_GOOGLE_SECRET="your-google-client-secret"
    ```
 
-### Database Setup
-
-1. Push the Prisma schema to your Supabase database:
+4. **Set up the database**
    ```bash
+   npx prisma generate
    npx prisma db push
    ```
 
-2. Run the RLS policies SQL script in your Supabase SQL Editor (located at `prisma/rls-policies.sql`).
+5. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-### Storage Setup
+6. **Open [http://localhost:3000](http://localhost:3000)**
 
-1. Go to your Supabase Dashboard -> Storage
-2. Create a new public bucket named `videos`
-3. Add a policy to allow public uploads (or disable RLS for storage if prototyping)
+## 🗄️ Database Schema
 
-### Running the App
+### Tables
+- **User** - User accounts and profiles
+- **Video** - Uploaded videos with metadata
+- **Like** - Video likes (user-video relationship)
+- **Account** - OAuth account connections
 
+### Key Features
+- Application-level security via tRPC
+- Optimized queries with Prisma
+- Supabase Storage for video files
+
+## 🎨 Design Decisions
+
+### Mobile-First Approach
+- Uses `100dvh` (dynamic viewport height) for proper mobile display
+- Prevents scrolling issues caused by mobile browser address bars
+- Responsive modals: smaller on mobile, larger on desktop
+
+### Authentication Flow
+- Public video feed for guest users
+- Modal-based auth (no page navigation)
+- Protected actions trigger login modal
+- Seamless user experience
+
+### Performance Optimizations
+- Infinite scroll with pagination
+- Optimistic UI updates for likes
+- Lazy loading of videos
+- Efficient database queries
+
+### UX Patterns
+- **Double-tap to like** - Prevents interference with play/pause
+- **Instant feedback** - Animations before server confirmation
+- **Consistent naming** - "Log In", "Log Out", "Sign Up" throughout
+
+## 📱 Mobile Features
+
+### Viewport Handling
+- Dynamic viewport height (`dvh`) units
+- Proper keyboard behavior on input focus
+- No manual scrolling required
+
+### Touch Interactions
+- Single tap: Play/Pause video
+- Double tap: Like video
+- Swipe: Scroll to next/previous video
+
+### Responsive Modals
+- Mobile: `max-w-sm` (384px) with compact padding
+- Desktop: `max-w-md` (448px) with spacious layout
+- Adaptive text sizes and spacing
+
+## 🔧 Development
+
+### Available Scripts
 ```bash
-npm install
-npm run dev
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run db:push      # Push schema changes to database
+npm run db:studio    # Open Prisma Studio
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+### Code Quality
+- TypeScript for type safety
+- ESLint for code linting
+- Prettier for code formatting (recommended)
 
-## Project Structure
+## 🌐 Deployment
 
-- `src/app`: Next.js App Router pages and layouts
-- `src/server/api`: tRPC routers and procedures
-- `src/server/auth`: NextAuth configuration
-- `src/server/db`: Prisma client instance
-- `prisma`: Database schema and migrations
+### Recommended Platforms
+- **[Vercel](https://vercel.com/)** - Optimal for Next.js apps
+- **[Supabase](https://supabase.com/)** - Database & storage
 
-## License
+### Environment Setup
+1. Set up Supabase project
+2. Configure environment variables
+3. Run database migrations
+4. Deploy to Vercel
 
-MIT
+## 📝 License
+This project is built with the [T3 Stack](https://create.t3.gg/).
+MIT License - Copyright (c) 2025 Vinay Goud

@@ -2,76 +2,120 @@
 
 import { signIn } from "next-auth/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
+import { api } from "~/trpc/react";
 
-export default function SignIn() {
+interface SignUpModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSwitchToLogIn: () => void;
+}
+
+export default function SignUpModal({ isOpen, onClose, onSwitchToLogIn }: SignUpModalProps) {
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [isEmailLoading, setIsEmailLoading] = useState(false);
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    const handleGoogleLogin = async () => {
-        setIsGoogleLoading(true);
-        await signIn("google", { callbackUrl: "/" });
-    };
-
-    const handleCredentialsLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsEmailLoading(true);
-        setError(null);
-
-        try {
+    const signup = api.auth.signup.useMutation({
+        onSuccess: async () => {
             const result = await signIn("credentials", {
                 redirect: false,
                 email,
                 password,
             });
 
-            if (result?.error) {
-                setError("Invalid email or password");
-                setIsEmailLoading(false);
+            if (!result?.error) {
+                onClose();
+                router.refresh();
             } else {
-                router.push("/");
+                setError("Account created! Please log in.");
+                setIsEmailLoading(false);
             }
-        } catch (err) {
-            setError("An error occurred during sign in");
+        },
+        onError: (error) => {
+            setError(error.message);
             setIsEmailLoading(false);
+        },
+    });
+
+    if (!isOpen) return null;
+
+    const handleGoogleSignup = async () => {
+        setIsGoogleLoading(true);
+        await signIn("google", { callbackUrl: "/" });
+    };
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsEmailLoading(true);
+        setError(null);
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            setIsEmailLoading(false);
+            return;
         }
+
+        signup.mutate({ name: username, email, password });
     };
 
     return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-gray-900/50 backdrop-blur-lg p-8 rounded-2xl border border-gray-800 shadow-xl">
-                <div className="flex flex-col items-center mb-8">
-                    <div className="flex items-center gap-3 mb-2">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
+            <div className="w-full max-w-sm md:max-w-md bg-gray-900/95 backdrop-blur-lg p-6 md:p-8 rounded-2xl border border-gray-800 shadow-xl relative my-8" onClick={(e) => e.stopPropagation()}>
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 md:top-4 md:right-4 text-gray-400 hover:text-white transition"
+                >
+                    <X className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+
+                <div className="flex flex-col items-center mb-6 md:mb-8">
+                    <div className="flex items-center gap-2 md:gap-3 mb-2">
                         <Image
                             src="/logo.png"
                             alt="KLIP Logo"
-                            width={50}
-                            height={50}
-                            className="h-12 w-auto"
+                            width={40}
+                            height={40}
+                            className="h-10 w-auto md:h-12"
                         />
-                        <span className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                        <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
                             KLIP
                         </span>
                     </div>
-                    <p className="text-gray-400 text-center">
-                        Welcome back! Log in to continue.
+                    <p className="text-gray-400 text-center text-sm md:text-base">
+                        Create your account to get started.
                     </p>
                 </div>
 
                 <div className="space-y-4">
-                    <form onSubmit={handleCredentialsLogin} className="space-y-4">
+                    <form onSubmit={handleSignup} className="space-y-4">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
+                            <label htmlFor="username" className="block text-sm font-medium text-gray-400 mb-1">
+                                Username
+                            </label>
+                            <input
+                                id="username"
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-pink-500 text-white transition"
+                                placeholder="johndoe"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-400 mb-1">
                                 Email Address
                             </label>
                             <input
-                                id="email"
+                                id="signup-email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -81,14 +125,28 @@ export default function SignIn() {
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1">
+                            <label htmlFor="signup-password" className="block text-sm font-medium text-gray-400 mb-1">
                                 Password
                             </label>
                             <input
-                                id="password"
+                                id="signup-password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-pink-500 text-white transition"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-400 mb-1">
+                                Re-enter Password
+                            </label>
+                            <input
+                                id="confirm-password"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-pink-500 text-white transition"
                                 placeholder="••••••••"
                                 required
@@ -104,7 +162,7 @@ export default function SignIn() {
                             disabled={isEmailLoading || isGoogleLoading}
                             className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-pink-700 hover:to-purple-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            {isEmailLoading ? "Logging in..." : "Log In"}
+                            {isEmailLoading ? "Creating account..." : "Sign Up"}
                         </button>
                     </form>
 
@@ -120,7 +178,7 @@ export default function SignIn() {
                     </div>
 
                     <button
-                        onClick={handleGoogleLogin}
+                        onClick={handleGoogleSignup}
                         disabled={isGoogleLoading || isEmailLoading}
                         className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3 px-4 rounded-xl hover:bg-gray-100 transition disabled:opacity-70 disabled:cursor-not-allowed"
                     >
@@ -150,10 +208,10 @@ export default function SignIn() {
                     </button>
 
                     <p className="mt-8 text-center text-sm text-gray-500">
-                        Don't have an account?{" "}
-                        <Link href="/auth/signup" className="text-pink-500 hover:text-pink-400 font-medium">
-                            Sign Up
-                        </Link>
+                        Already have an account?{" "}
+                        <button onClick={onSwitchToLogIn} className="text-pink-500 hover:text-pink-400 font-medium">
+                            Log In
+                        </button>
                     </p>
                 </div>
             </div>

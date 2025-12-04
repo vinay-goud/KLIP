@@ -137,13 +137,6 @@ exports.Prisma.AccountScalarFieldEnum = {
   refresh_token_expires_in: 'refresh_token_expires_in'
 };
 
-exports.Prisma.SessionScalarFieldEnum = {
-  id: 'id',
-  sessionToken: 'sessionToken',
-  userId: 'userId',
-  expires: 'expires'
-};
-
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -151,12 +144,6 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   image: 'image',
   password: 'password'
-};
-
-exports.Prisma.VerificationTokenScalarFieldEnum = {
-  identifier: 'identifier',
-  token: 'token',
-  expires: 'expires'
 };
 
 exports.Prisma.VideoScalarFieldEnum = {
@@ -172,9 +159,9 @@ exports.Prisma.VideoScalarFieldEnum = {
 
 exports.Prisma.LikeScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt',
   userId: 'userId',
-  videoId: 'videoId'
+  videoId: 'videoId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -195,9 +182,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   Account: 'Account',
-  Session: 'Session',
   User: 'User',
-  VerificationToken: 'VerificationToken',
   Video: 'Video',
   Like: 'Like'
 };

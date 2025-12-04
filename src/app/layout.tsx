@@ -7,11 +7,21 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { auth } from "~/server/auth";
 import Sidebar from "./_components/Sidebar";
 import BottomNav from "./_components/BottomNav";
+import { AuthModalProvider } from "./_components/AuthModalContext";
+import AuthModals from "./_components/AuthModals";
 
 export const metadata: Metadata = {
   title: "KLIP - Short-Form Video Platform",
   description: "Share and discover amazing short videos",
   icons: [{ rel: "icon", url: "/logo.png" }],
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 const geist = Geist({
@@ -28,13 +38,16 @@ export default async function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body className="bg-black">
         <TRPCReactProvider>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar session={session} />
-            <main className="flex-1 overflow-auto md:ml-64">
-              {children}
-            </main>
-          </div>
-          <BottomNav />
+          <AuthModalProvider>
+            <div className="flex h-[100dvh] overflow-hidden">
+              <Sidebar session={session} />
+              <main className="flex-1 overflow-auto md:ml-64">
+                {children}
+              </main>
+            </div>
+            <BottomNav />
+            <AuthModals />
+          </AuthModalProvider>
         </TRPCReactProvider>
       </body>
     </html>
