@@ -1,3 +1,6 @@
+
+
+
 "use client";
 
 import { useState } from "react";
@@ -16,12 +19,22 @@ export default function UploadForm() {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
+    const [isSuccess, setIsSuccess] = useState(false);
+    const utils = api.useUtils();
+
     const createVideo = api.video.create.useMutation({
         onSuccess: () => {
-            router.push("/");
+            setIsSuccess(true);
+            // Invalidate video cache to show new video immediately
+            utils.video.getInfinite.invalidate();
+            // Delay redirect to show success message
+            setTimeout(() => {
+                router.push("/profile");
+                router.refresh();
+            }, 1500);
         },
         onError: (err: any) => {
-            setError(err.message);
+            setError(err.message || "Failed to create video record");
             setUploading(false);
         }
     });
@@ -71,10 +84,11 @@ export default function UploadForm() {
                 });
 
             if (uploadError) {
+                console.error("Supabase upload error:", uploadError);
                 throw new Error(`Upload failed: ${uploadError.message}`);
             }
 
-            // Get public URL
+            // Get public URL - Supabase format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[filename]
             const { data: { publicUrl } } = supabase.storage
                 .from('videos')
                 .getPublicUrl(fileName);
@@ -88,10 +102,25 @@ export default function UploadForm() {
                 description: description || undefined,
             });
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Upload failed');
+            console.error("Upload process error:", err);
+            setError(err instanceof Error ? err.message : 'Upload failed. Please check your connection and try again.');
             setUploading(false);
         }
     };
+
+    if (isSuccess) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 animate-bounce">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white">Video Uploaded!</h3>
+                <p className="text-gray-400">Redirecting to your profile...</p>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -149,27 +178,35 @@ export default function UploadForm() {
                 )}
             </div>
 
-            {uploading && uploadProgress > 0 && (
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div
-                        className="bg-gradient-to-r from-pink-600 to-purple-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                    />
+            {uploading && (
+                <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-400">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                        <div
+                            className="bg-gradient-to-r from-pink-600 to-purple-600 h-full rounded-full transition-all duration-300 ease-out"
+                            style={{ width: `${uploadProgress}%` }}
+                        />
+                    </div>
                 </div>
             )}
 
             <button
                 type="submit"
                 disabled={uploading || !videoFile}
-                className="w-full bg-gradient-to-r from-pink-600 to-purple-600 py-3 rounded-lg font-bold hover:from-pink-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-pink-600 to-purple-600 py-3 rounded-lg font-bold hover:from-pink-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed mt-4"
             >
-                {uploading ? `Uploading... ${uploadProgress}%` : "Upload Video"}
+                {uploading ? "Uploading..." : "Upload Video"}
             </button>
 
             {error && (
-                <p className="text-red-500 text-sm text-center">
-                    {error}
-                </p>
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="text-red-500 text-sm text-center">
+                        {error}
+                    </p>
+                </div>
             )}
         </form>
     );

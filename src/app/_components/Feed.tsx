@@ -61,8 +61,9 @@ function VideoCard({ video, session }: { video: any; session: any }) {
     const utils = api.useUtils();
     const { openLogIn } = useAuthModal();
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(true); // Start as true to hide pause icon initially
     const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+    const [videoError, setVideoError] = useState(false);
     const lastTapRef = useRef<number>(0);
 
     const toggleLike = api.video.toggleLike.useMutation({
@@ -108,48 +109,101 @@ function VideoCard({ video, session }: { video: any; session: any }) {
         }
     };
 
-    // Auto-play when in view using Intersection Observer
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        videoRef.current?.play().catch(() => {
-                            // Handle auto-play restrictions
-                            setIsPlaying(false);
-                        });
-                        setIsPlaying(true);
-                    } else {
-                        videoRef.current?.pause();
-                        setIsPlaying(false);
-                    }
-                });
-            },
-            { threshold: 0.6 }
-        );
+    const [isLoading, setIsLoading] = useState(true);
 
-        if (videoRef.current) {
-            observer.observe(videoRef.current);
-        }
+    // Handle video errors and loading state
+    useEffect(() => {
+        const videoElement = videoRef.current;
+        if (!videoElement) return;
+
+        const handleError = (e: Event) => {
+            setVideoError(true);
+            setIsPlaying(false);
+            setIsLoading(false);
+        };
+
+        const handleLoadedData = () => {
+            setVideoError(false);
+            setIsLoading(false);
+        };
+
+        const handleWaiting = () => setIsLoading(true);
+        const handlePlaying = () => setIsLoading(false);
+
+        videoElement.addEventListener('error', handleError);
+        videoElement.addEventListener('loadeddata', handleLoadedData);
+        videoElement.addEventListener('waiting', handleWaiting);
+        videoElement.addEventListener('playing', handlePlaying);
 
         return () => {
-            if (videoRef.current) {
-                observer.unobserve(videoRef.current);
-            }
+            videoElement.removeEventListener('error', handleError);
+            videoElement.removeEventListener('loadeddata', handleLoadedData);
+            videoElement.removeEventListener('waiting', handleWaiting);
+            videoElement.removeEventListener('playing', handlePlaying);
         };
-    }, []);
+    }, [video.url]);
+
+    // Auto-play when in view using Intersection Observer
+    useEffect(() => {
+        const videoElement = videoRef.current;
+        if (!videoElement) return;
+
+        const options = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.5
+        };
+
+        const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+            entries.forEach((entry) => {
+                // Always use videoRef.current to get the latest video element
+                const currentVideo = videoRef.current;
+                if (!currentVideo) return;
+
+                if (entry.isIntersecting) {
+                    // Set playing state immediately
+                    setIsPlaying(true);
+                    const playPromise = currentVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch((error) => {
+                            console.error("Auto-play prevented:", error);
+                            setIsPlaying(false);
+                        });
+                    }
+                } else {
+                    currentVideo.pause();
+                    setIsPlaying(false);
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(handleIntersection, options);
+        observer.observe(videoElement);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [video.url]); // Re-create observer when video URL changes
 
     return (
         <div className="h-[100dvh] w-full snap-start relative bg-black flex items-center justify-center">
-            <video
-                ref={videoRef}
-                src={video.url}
-                className="h-full w-full object-cover cursor-pointer"
-                loop
-                playsInline
-                preload="metadata"
-                onClick={handleVideoClick}
-            />
+            {videoError ? (
+                <div className="text-center p-4">
+                    <p className="text-red-500 mb-2">Failed to load video</p>
+                    <p className="text-gray-400 text-sm">Format not supported</p>
+                </div>
+            ) : (
+                <video
+                    ref={videoRef}
+                    src={video.url}
+                    className="h-full w-full object-cover cursor-pointer"
+                    loop
+                    playsInline
+                    muted
+                    preload="auto"
+                    onClick={handleVideoClick}
+                />
+            )}
 
             {/* Heart Animation */}
             {showHeartAnimation && (
@@ -173,14 +227,21 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                 </div>
             )}
 
-            {/* Play/Pause Overlay Icon */}
-            {!isPlaying && (
+            {/* Play/Pause Overlay Icon - Only show if NOT playing AND NOT loading */}
+            {!isPlaying && !isLoading && !videoError && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                     <div className="bg-black/50 p-4 rounded-full">
                         <svg className="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>
+                </div>
+            )}
+
+            {/* Loading Spinner */}
+            {isLoading && !videoError && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
                 </div>
             )}
 

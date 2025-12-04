@@ -219,4 +219,4 @@ npm run db:studio    # Open Prisma Studio
 
 ## 📝 License
 This project is built with the [T3 Stack](https://create.t3.gg/).
-MIT License - Copyright (c) 2025 Vinay Goud
+Licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
