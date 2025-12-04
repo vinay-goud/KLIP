@@ -6,15 +6,26 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Feed({ session }: { session: any }) {
-    const { data, fetchNextPage, hasNextPage } = api.video.getInfinite.useInfiniteQuery(
-        { limit: 5 },
+    const { data, fetchNextPage, hasNextPage, isLoading } = api.video.getInfinite.useInfiniteQuery(
+        { limit: 10 },
         { getNextPageParam: (lastPage: any) => lastPage.nextCursor }
     );
 
     const videos = data?.pages.flatMap((page: any) => page.items) ?? [];
 
+    if (isLoading) {
+        return (
+            <div className="w-full max-w-2xl mx-auto h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading videos...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="w-full max-w-2xl mx-auto h-screen overflow-y-scroll snap-y snap-mandatory no-scrollbar pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+        <div className="w-full max-w-2xl mx-auto h-screen overflow-y-scroll snap-y snap-mandatory no-scrollbar pb-20 md:pb-0">
             {videos.map((video: any) => (
                 <VideoCard key={video.id} video={video} session={session} />
             ))}
@@ -110,13 +121,14 @@ function VideoCard({ video, session }: { video: any; session: any }) {
     }, []);
 
     return (
-        <div className="h-[calc(100vh-4rem)] md:h-screen w-full snap-start relative bg-black flex items-center justify-center">
+        <div className="h-screen md:h-screen w-full snap-start relative bg-black flex items-center justify-center">
             <video
                 ref={videoRef}
                 src={video.url}
-                className="h-full w-full object-contain md:object-cover cursor-pointer"
+                className="h-full w-full object-cover cursor-pointer"
                 loop
                 playsInline
+                preload="metadata"
                 onClick={togglePlay}
             />
 
@@ -132,7 +144,7 @@ function VideoCard({ video, session }: { video: any; session: any }) {
             )}
 
             {/* Overlay Info */}
-            <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-20">
+            <div className="absolute bottom-0 left-0 w-full p-4 pb-24 md:pb-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-20">
                 <div className="flex justify-between items-end">
                     <div className="flex-1 mr-12">
                         <div className="flex items-center gap-2 mb-2">
@@ -145,7 +157,7 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                         {video.description && <p className="text-xs text-gray-300 line-clamp-2">{video.description}</p>}
                     </div>
 
-                    <div className="flex flex-col items-center gap-6 absolute right-2 bottom-20 md:bottom-8">
+                    <div className="flex flex-col items-center gap-6 absolute right-2 bottom-24 md:bottom-8">
                         <button onClick={handleLike} className="flex flex-col items-center group">
                             <div className={`p-3 rounded-full bg-gray-800/60 backdrop-blur-sm transition-transform group-active:scale-90 ${video.isLiked ? 'text-red-500' : 'text-white'}`}>
                                 <svg className={`w-8 h-8 ${video.isLiked ? 'fill-current' : 'stroke-current fill-none'}`} viewBox="0 0 24 24" strokeWidth="2">

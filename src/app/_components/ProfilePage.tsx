@@ -3,9 +3,13 @@
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { LogOut, Video } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function ProfilePage({ session }: { session: any }) {
     const router = useRouter();
+    const [isMounted, setIsMounted] = useState(false);
+    const [showSignOutModal, setShowSignOutModal] = useState(false);
+
     const { data: userVideos } = api.video.getInfinite.useInfiniteQuery(
         { limit: 20 },
         {
@@ -14,28 +18,53 @@ export default function ProfilePage({ session }: { session: any }) {
         }
     );
 
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const videos = userVideos?.pages.flatMap((page: any) => page.items) ?? [];
     const myVideos = videos.filter((v: any) => v.userId === session?.user?.id);
+
+    if (!isMounted) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     if (!session) {
         return (
             <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Profile</h1>
-                    <p className="text-gray-400 mb-6">Please log in to view your profile</p>
-                    <button
-                        onClick={() => router.push("/auth/signin")}
-                        className="px-6 py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-medium transition"
-                    >
-                        Log In
-                    </button>
+                <div className="text-center max-w-md">
+                    <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                        Profile
+                    </h1>
+                    <p className="text-gray-400 mb-8">View your videos and stats</p>
+                    <div className="bg-gray-900/50 p-8 rounded-2xl border border-gray-800">
+                        <p className="text-white mb-6">You need to be logged in to view your profile.</p>
+                        <div className="flex gap-4 justify-center">
+                            <a
+                                href="/auth/signin"
+                                className="px-6 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-medium transition"
+                            >
+                                Log In
+                            </a>
+                            <a
+                                href="/auth/signup"
+                                className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition"
+                            >
+                                Sign Up
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black text-white pb-20 md:pb-0">
+        <div className="min-h-screen bg-black text-white pb-24 md:pb-8">
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Profile Header */}
                 <div className="flex items-center justify-between mb-8">
@@ -49,7 +78,7 @@ export default function ProfilePage({ session }: { session: any }) {
                         </div>
                     </div>
                     <button
-                        onClick={() => router.push("/api/auth/signout")}
+                        onClick={() => setShowSignOutModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
                     >
                         <LogOut className="h-4 w-4" />
@@ -112,6 +141,30 @@ export default function ProfilePage({ session }: { session: any }) {
                     )}
                 </div>
             </div>
+
+            {/* Sign Out Modal */}
+            {showSignOutModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full">
+                        <h2 className="text-2xl font-bold mb-4 text-white">Sign Out</h2>
+                        <p className="text-gray-400 mb-6">Are you sure you want to sign out?</p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setShowSignOutModal(false)}
+                                className="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium transition text-white"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => router.push("/api/auth/signout")}
+                                className="flex-1 px-6 py-3 bg-pink-600 hover:bg-pink-700 rounded-lg font-medium transition text-white"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
