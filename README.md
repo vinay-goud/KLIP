@@ -46,6 +46,7 @@ A modern, TikTok-style short-form video sharing platform built with the T3 Stack
 - **[Next.js 15.5.6](https://nextjs.org/)** - React framework with App Router
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
+- **PWA Support** - Installable app with offline capabilities
 
 ### Backend & Database
 - **[tRPC](https://trpc.io/)** - End-to-end typesafe APIs
@@ -236,6 +237,38 @@ npm run db:studio    # Open Prisma Studio
 2. Configure environment variables
 3. Run database migrations
 4. Deploy to Vercel
+
+## 📱 PWA (Progressive Web App)
+
+KLIP is a fully installable Progressive Web App! Users can install it on their mobile devices for a native app-like experience.
+
+### Features
+- **Installable** - Add to home screen on iOS and Android
+- **Offline Support** - Cached assets work without internet
+- **App-like Experience** - Full-screen mode without browser UI
+- **Fast Loading** - Service worker caching for instant loads
+
+### How to Install
+
+#### On Android (Chrome/Edge):
+1. Open KLIP in Chrome
+2. Tap the menu (⋮) → "Install app" or "Add to Home screen"
+3. Confirm installation
+4. App icon appears on home screen
+
+#### On iOS (Safari):
+1. Open KLIP in Safari
+2. Tap the Share button (□↑)
+3. Scroll and tap "Add to Home Screen"
+4. Name it "KLIP" and tap "Add"
+5. App icon appears on home screen
+
+### Technical Details
+- **Manifest**: `/public/manifest.json`
+- **Service Worker**: `/public/sw.js`
+- **Icons**: 192x192 and 512x512 PNG icons
+- **Caching Strategy**: Network-first with cache fallback
+- **Theme Color**: Black (#000000)
 
 ## 📝 License
 This project is built with the [T3 Stack](https://create.t3.gg/).

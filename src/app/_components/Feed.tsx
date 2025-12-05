@@ -80,7 +80,8 @@ function VideoCard({ video, session }: { video: any; session: any }) {
     const utils = api.useUtils();
     const { openLogIn, openSignUp } = useAuthModal();
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(true); // Start as true to hide pause icon initially
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [isManuallyPaused, setIsManuallyPaused] = useState(false); // Track manual pause
     const [showHeartAnimation, setShowHeartAnimation] = useState(false);
     const [videoError, setVideoError] = useState(false);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -111,25 +112,33 @@ function VideoCard({ video, session }: { video: any; session: any }) {
     };
 
     const handleVideoClick = (e: React.MouseEvent) => {
-        const currentTime = Date.now();
-        const timeSinceLastTap = currentTime - lastTapRef.current;
+        const now = Date.now();
+        const timeSinceLastTap = now - lastTapRef.current;
 
-        // Double tap detection (within 300ms)
         if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-            // Double tap - like the video
+            // Double tap - like
             handleLike();
-            lastTapRef.current = 0; // Reset
+            lastTapRef.current = 0; // Reset for next tap sequence
         } else {
-            // Single tap - toggle play/pause
-            if (videoRef.current) {
-                if (isPlaying) {
-                    videoRef.current.pause();
-                } else {
-                    videoRef.current.play();
+            // Single tap - potential play/pause
+            lastTapRef.current = now;
+            setTimeout(() => {
+                // Check if it's still a single tap (no second tap within 300ms)
+                if (lastTapRef.current === now) {
+                    const videoElement = videoRef.current;
+                    if (videoElement) {
+                        if (videoElement.paused) {
+                            videoElement.play();
+                            setIsPlaying(true);
+                            setIsManuallyPaused(false); // User manually resumed
+                        } else {
+                            videoElement.pause();
+                            setIsPlaying(false);
+                            setIsManuallyPaused(true); // User manually paused
+                        }
+                    }
                 }
-                setIsPlaying(!isPlaying);
-            }
-            lastTapRef.current = currentTime;
+            }, 300); // Wait 300ms to see if it's a double tap
         }
     };
 
@@ -185,22 +194,24 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                 if (!currentVideo) return;
 
                 if (entry.isIntersecting) {
-                    // Set playing state immediately to hide pause icon
+                    // Auto-play when scrolling into view (not manual)
                     setIsPlaying(true);
+                    setIsManuallyPaused(false); // Reset manual pause state
                     const playPromise = currentVideo.play();
                     if (playPromise !== undefined) {
                         playPromise.catch((error) => {
                             // Suppress AbortError as it's expected when scrolling
                             if (error.name !== 'AbortError') {
                                 console.error("Auto-play prevented:", error);
-                                setIsPlaying(false); // Only set to false for real errors
                             }
                             // Don't set isPlaying to false for AbortError to prevent icon flicker
                         });
                     }
                 } else {
+                    // Auto-pause when scrolling out of view (not manual)
                     currentVideo.pause();
                     setIsPlaying(false);
+                    setIsManuallyPaused(false); // Reset manual pause state
                 }
             });
         };
@@ -227,7 +238,6 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                     className="h-full w-full object-cover cursor-pointer"
                     loop
                     playsInline
-                    muted
                     preload="auto"
                     onClick={handleVideoClick}
                 />
@@ -255,11 +265,11 @@ function VideoCard({ video, session }: { video: any; session: any }) {
                 </div>
             )}
 
-            {/* Play/Pause Overlay Icon - Only show if NOT playing AND NOT loading */}
-            {!isPlaying && !isLoading && !videoError && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                    <div className="bg-black/50 p-4 rounded-full">
-                        <svg className="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
+            {/* Play/Pause Icon - Only show when manually paused */}
+            {isManuallyPaused && !videoError && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/50 rounded-full p-6">
+                        <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>

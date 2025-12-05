@@ -9,11 +9,19 @@ import Sidebar from "./_components/Sidebar";
 import BottomNav from "./_components/BottomNav";
 import { AuthModalProvider } from "./_components/AuthModalContext";
 import AuthModals from "./_components/AuthModals";
+import PWARegister from "./_components/PWARegister";
 
 export const metadata: Metadata = {
   title: "KLIP - Short-Form Video Platform",
   description: "Share and discover amazing short videos",
   icons: [{ rel: "icon", url: "/logo.png" }],
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "KLIP",
+  },
 };
 
 export const viewport = {
@@ -39,6 +47,7 @@ export default async function RootLayout({
       <body className="bg-black">
         <TRPCReactProvider>
           <AuthModalProvider>
+            <PWARegister />
             <div className="flex h-[100dvh] overflow-hidden">
               <Sidebar session={session} />
               <main className="flex-1 overflow-auto md:ml-64">
