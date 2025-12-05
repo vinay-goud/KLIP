@@ -6,11 +6,13 @@ A modern, TikTok-style short-form video sharing platform built with the T3 Stack
 
 ### 📱 Video Experience
 - **Infinite Scroll Feed** - Smooth, TikTok-style vertical video feed
-- **Auto-Play & Snap Scrolling** - Videos auto-play as you scroll
+- **Auto-Play & Snap Scrolling** - Videos auto-play as you scroll with instant navigation
 - **Double-Tap to Like** - Intuitive gesture-based interactions
 - **Animated Reactions** - Beautiful heart animations on like
+- **Expandable Descriptions** - Click to expand long video descriptions
 - **Mobile-Optimized** - Perfect viewport handling with `dvh` units
 - **Centered Play/Pause** - Large, centered controls on all devices
+- **Performance Optimized** - Instant scroll to specific videos without triggering intermediate videos
 
 ### 🔐 Authentication
 - **Popup Modals** - Modern modal-based login/signup (no page navigation)
@@ -18,6 +20,8 @@ A modern, TikTok-style short-form video sharing platform built with the T3 Stack
 - **Email/Password** - Traditional credentials-based authentication
 - **Protected Routes** - Upload and profile pages require authentication
 - **Guest Browsing** - Public video feed accessible without login
+- **Smart Login Prompts** - Friendly popup prompts for protected actions (like videos)
+- **Logout Confirmation** - Consistent confirmation modals across Sidebar and Profile
 
 ### 🎨 User Interface
 - **Responsive Design** - Optimized for mobile, tablet, and desktop
@@ -25,12 +29,16 @@ A modern, TikTok-style short-form video sharing platform built with the T3 Stack
 - **Glassmorphism** - Modern UI with backdrop blur effects
 - **Gradient Accents** - Pink-to-purple brand colors
 - **Mobile Keyboard Handling** - Proper viewport adjustments on input focus
+- **Consistent Branding** - KLIP logo and gradient text throughout
 
 ### 👤 User Features
 - **Profile Management** - View your uploaded videos and stats
+- **User Profiles** - Click on any username/avatar to view their profile
+- **Back Navigation** - Smart back button returns to exact video position
 - **Video Upload** - Easy video upload with title and description
 - **Like System** - Like videos with instant visual feedback
 - **Video Grid** - Beautiful grid layout for user profiles
+- **Profile Stats** - View video count and total likes
 
 ## 🛠️ Tech Stack
 
@@ -59,13 +67,16 @@ src/
 │   │   ├── AuthModals.tsx          # Modal wrapper component
 │   │   ├── LogInModal.tsx          # Login modal
 │   │   ├── SignUpModal.tsx         # Signup modal
-│   │   ├── Feed.tsx                # Video feed component
+│   │   ├── Feed.tsx                # Video feed with auto-play
 │   │   ├── ProfilePage.tsx         # Profile page component
 │   │   ├── UploadForm.tsx          # Video upload form
 │   │   ├── Sidebar.tsx             # Desktop navigation
 │   │   └── BottomNav.tsx           # Mobile navigation
 │   ├── upload/               # Upload page route
-│   ├── profile/              # Profile page route
+│   ├── profile/              # Profile routes
+│   │   ├── page.tsx          # Own profile page
+│   │   └── [userId]/         # Dynamic user profile
+│   │       └── page.tsx      # User profile page
 │   ├── layout.tsx            # Root layout with providers
 │   └── page.tsx              # Home page (video feed)
 ├── server/
@@ -105,7 +116,7 @@ src/
 
 3. **Set up environment variables**
    
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory (see `.env.example` for reference):
    ```env
    # Database
    DATABASE_URL="postgresql://..."
@@ -120,6 +131,8 @@ src/
    AUTH_GOOGLE_ID="your-google-client-id"
    AUTH_GOOGLE_SECRET="your-google-client-secret"
    ```
+   
+   > **Note:** Copy `.env.example` to `.env` and fill in your actual values.
 
 4. **Set up the database**
    ```bash
@@ -157,19 +170,26 @@ src/
 ### Authentication Flow
 - Public video feed for guest users
 - Modal-based auth (no page navigation)
-- Protected actions trigger login modal
-- Seamless user experience
+- Protected actions trigger friendly login prompts
+- Seamless user experience with smart popups
 
 ### Performance Optimizations
 - Infinite scroll with pagination
 - Optimistic UI updates for likes
 - Lazy loading of videos
 - Efficient database queries
+- Instant scroll navigation (no intermediate video triggering)
+- AbortError suppression for smooth scrolling
 
 ### UX Patterns
 - **Double-tap to like** - Prevents interference with play/pause
 - **Instant feedback** - Animations before server confirmation
 - **Consistent naming** - "Log In", "Log Out", "Sign Up" throughout
+- **Clickable profiles** - Navigate to user profiles from feed
+- **Smart back navigation** - Returns to exact video position
+- **Expandable content** - Long descriptions expand on click
+- **Confirmation modals** - Logout requires confirmation
+- **Friendly prompts** - Login prompts with KLIP branding
 
 ## 📱 Mobile Features
 
