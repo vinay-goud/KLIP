@@ -5,7 +5,9 @@ A modern, TikTok-style short-form video sharing platform built with the T3 Stack
 ## 🎯 Features
 
 ### 📱 Video Experience
-- **Infinite Scroll Feed** - Smooth, TikTok-style vertical video feed
+- **Automatic Infinite Scroll** - Continuously loads more videos as you scroll (TikTok-style)
+- **Smart Autoplay** - Videos play automatically (muted initially), unmuting seamlessly on interaction
+- **Seamless Audio** - Scrolling or tapping anywhere enables audio for the entire session
 - **Auto-Play & Snap Scrolling** - Videos auto-play as you scroll with instant navigation
 - **Double-Tap to Like** - Intuitive gesture-based interactions
 - **Animated Reactions** - Beautiful heart animations on like
@@ -161,8 +163,6 @@ src/
 - Optimized queries with Prisma
 - Supabase Storage for video files
 
-## 🎨 Design Decisions
-
 ### Mobile-First Approach
 - Uses `100dvh` (dynamic viewport height) for proper mobile display
 - Prevents scrolling issues caused by mobile browser address bars
@@ -174,15 +174,11 @@ src/
 - Protected actions trigger friendly login prompts
 - Seamless user experience with smart popups
 
-### Performance Optimizations
-- Infinite scroll with pagination
-- Optimistic UI updates for likes
-- Lazy loading of videos
-- Efficient database queries
-- Instant scroll navigation (no intermediate video triggering)
-- AbortError suppression for smooth scrolling
-
-### UX Patterns
+### 🎨 Design Decisions & UX Patterns
+- **Smart Login Prompts**: Non-intrusive popups for unauthenticated interactions
+- **Visual Feedback**: "Tap to Unmute" indicators and "Resume" animations for clear state communication
+- **Instant Scroll Navigation**: `scrollIntoView` with `instant` behavior prevents intermediate video playback
+- **AbortError Suppression**: Handles rapid scrolling gracefully without console noise
 - **Double-tap to like** - Prevents interference with play/pause
 - **Instant feedback** - Animations before server confirmation
 - **Consistent naming** - "Log In", "Log Out", "Sign Up" throughout

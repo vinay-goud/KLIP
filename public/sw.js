@@ -1,9 +1,9 @@
 // @ts-nocheck
 // Service Worker for KLIP PWA
 
-const CACHE_NAME = 'klip-v1';
+const CACHE_NAME = 'klip-v2';
 const urlsToCache = [
-    '/',
+    '/manifest.json',
     '/logo.png',
     '/logo-192x192.png',
     '/logo-512x512.png',
