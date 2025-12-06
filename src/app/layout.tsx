@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   description: "Share and discover amazing short videos",
   icons: [{ rel: "icon", url: "/logo.png" }],
   manifest: "/manifest.json",
-  themeColor: "#000000",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -30,6 +29,7 @@ export const viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#000000",
 };
 
 const geist = Geist({
